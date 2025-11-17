@@ -13,17 +13,11 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="소스 파일\images">
-      <UniqueIdentifier>{d8d401f9-142c-4d2d-baca-3feee601ad86}</UniqueIdentifier>
-    </Filter>
     <Filter Include="소스 파일\shaders">
       <UniqueIdentifier>{ebb65239-9e6b-4e93-982d-01c7f55b0569}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\..\Downloads\glad\src\glad.c">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
     <ClCompile Include="main.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
@@ -33,7 +27,10 @@
     <ClCompile Include="object.fs">
       <Filter>소스 파일\shaders</Filter>
     </ClCompile>
-    <ClCompile Include="stb_image.cpp">
+    <ClCompile Include="..\glad.c">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="..\stb_image.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
   </ItemGroup>
@@ -44,17 +41,6 @@
     <ClInclude Include="camera.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <Image Include="..\..\..\..\Downloads\container.jpg">
-      <Filter>소스 파일\images</Filter>
-    </Image>
-    <Image Include="..\..\..\..\Downloads\wall.jpg">
-      <Filter>소스 파일\images</Filter>
-    </Image>
-    <Image Include="awesomeface.png">
-      <Filter>소스 파일\images</Filter>
-    </Image>
   </ItemGroup>
   <ItemGroup>
     <None Include="light_cube.vs">

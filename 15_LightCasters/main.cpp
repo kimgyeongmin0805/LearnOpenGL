@@ -173,9 +173,9 @@ int main() {
 	// -------
 	stbi_set_flip_vertically_on_load(true);
 	unsigned int diffuseMap, specularMap, emissionMap;
-	diffuseMap = loadTexture("container2_specular.png");
-	specularMap = loadTexture("container2_specular.png");
-	emissionMap = loadTexture("matrix.jpg");
+	diffuseMap = loadTexture("../resources/textures/container2_specular.png");
+	specularMap = loadTexture("../resources/textures/container2_specular.png");
+	emissionMap = loadTexture("../resources/textures/matrix.jpg");
 	objectShader.use();
 	objectShader.setInt("material.diffuse", 0);
 	objectShader.setInt("material.specular", 1);

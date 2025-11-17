@@ -144,15 +144,6 @@
     <ClInclude Include="shader.h" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="..\..\..\..\Downloads\container.jpg" />
-    <Image Include="..\..\..\..\Downloads\wall.jpg" />
-    <Image Include="awesomeface.png" />
-    <Image Include="container2.png" />
-    <Image Include="container2_specular.png" />
-    <Image Include="container2_specular_color.png" />
-    <Image Include="matrix.jpg" />
-  </ItemGroup>
-  <ItemGroup>
     <None Include="light_cube.fs">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </None>
