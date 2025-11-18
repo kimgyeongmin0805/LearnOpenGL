@@ -226,7 +226,7 @@ int main() {
 		glBindVertexArray(VAOs[1]);
 		glDisable(GL_DEPTH_TEST);
 		outLineShader.use();
-		float scaleFactor = 1.1f;
+		float scaleFactor = 1.02f;
 		model = glm::mat4(1.0f);
 		model = glm::translate(model, glm::vec3(-1.0f, 0.0f, -1.0f));
 		model = glm::scale(model, glm::vec3(scaleFactor));
