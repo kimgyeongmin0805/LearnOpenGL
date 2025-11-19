@@ -21,10 +21,10 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{3CC35A0B-3694-493F-BDF6-FCEE45A89487}</ProjectGuid>
+    <ProjectGuid>{957A14F2-622B-4B41-A3E0-7224D8AC66E3}</ProjectGuid>
     <RootNamespace>My01HelloOpenGL</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
-    <ProjectName>32_StencilTesting</ProjectName>
+    <ProjectName>33_Blending</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
