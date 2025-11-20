@@ -1,20 +1,17 @@
 # Creating a Window
-### ¶óÀÌºê·¯¸® ¼³Ä¡ ¹æ¹ı
-* GLFW: [¼³Ä¡¹æ¹ı](https://learnopengl.com/Getting-started/Creating-a-window), [´Ù¿î·Îµå](https://www.glfw.org/download.html)
-* GLAD: [¼³Ä¡¹æ¹ı](https://learnopengl.com/Getting-started/Creating-a-window), [´Ù¿î·Îµå](https://glad.dav1d.de/)
 
-### ¿ä¾à
-> **GLFW ÃÊ±âÈ­**
+### ìš”ì•½
+> **GLFW ì´ˆê¸°í™”**
 
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-* OpenGL 3.3 Core Profile ¼³Á¤
-* GLFW ½ÃÀÛ ¹× ¼³Á¤
+* OpenGL 3.3 Core Profile ì„¤ì •
+* GLFW ì‹œì‘ ë° ì„¤ì •
   
-> **Window »ı¼º + OpenGL Context ¼³Á¤**
+> **Window ìƒì„± + OpenGL Context ì„¤ì •**
 
 	GLFWwindow* window = glfwCreateWindow(800, 600, "LearnOpenGL", NULL, NULL);
 	if (window == nullptr) {
@@ -24,21 +21,21 @@
 	}
 	glfwMakeContextCurrent(window);
 
-* 800x600 Å©±â À©µµ¿ì »ı¼º
-* ½ÇÆĞ ½Ã Á¾·á
-* »ı¼ºµÈ À©µµ¿ì¿¡ OpenGL context È°¼ºÈ­
+* 800x600 í¬ê¸° ìœˆë„ìš° ìƒì„±
+* ì‹¤íŒ¨ ì‹œ ì¢…ë£Œ
+* ìƒì„±ëœ ìœˆë„ìš°ì— OpenGL context í™œì„±í™”
 
-> **GLAD ·Îµù**
+> **GLAD ë¡œë”©**
 
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
 		std::cout << "Failed to initialize GLAD" << std::endl;
 		return -1;
 	}
 
-* OpenGL ÇÔ¼ö ÁÖ¼Ò¸¦ ·±Å¸ÀÓ¿¡ ºÒ·¯¿À±â
-* GLAD ÃÊ±âÈ­ ½ÇÆĞ ½Ã Á¾·á
+* OpenGL í•¨ìˆ˜ ì£¼ì†Œë¥¼ ëŸ°íƒ€ì„ì— ë¶ˆëŸ¬ì˜¤ê¸°
+* GLAD ì´ˆê¸°í™” ì‹¤íŒ¨ ì‹œ ì¢…ë£Œ
 
-> **Viewport ¼³Á¤**
+> **Viewport ì„¤ì •**
 
 	void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
 		glViewPort(0, 0, width, height);
@@ -46,7 +43,7 @@
 
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
-> **ÀÔ·Â Ã³¸®**
+> **ì…ë ¥ ì²˜ë¦¬**
 
 	void processInput(GLFWwindow* window) {
 		if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
@@ -54,7 +51,7 @@
 		}
 	}
 
-* ESC ÀÔ·Â ½Ã Ã¢À» ´İµµ·Ï ÇÃ·¡±× ¼³Á¤
+* ESC ì…ë ¥ ì‹œ ì°½ì„ ë‹«ë„ë¡ í”Œë˜ê·¸ ì„¤ì •
 
 > **Render Loop**
 
@@ -68,7 +65,11 @@
 		glfwPollEvents();
 	}
 
-* Ã¢À» ´İÀ» ¶§±îÁö ¹İº¹
-* ¸Å ÇÁ·¹ÀÓ ¹è°æ»ö ¼³Á¤ + È­¸é Å¬¸®¾î
-* ¹öÆÛ ½º¿Ò
-* ÀÌº¥Æ® Ã³¸®
+* ì°½ì„ ë‹«ì„ ë•Œê¹Œì§€ ë°˜ë³µ
+* ë§¤ í”„ë ˆì„ ë°°ê²½ìƒ‰ ì„¤ì • + í™”ë©´ í´ë¦¬ì–´
+* ë²„í¼ ìŠ¤ì™‘
+* ì´ë²¤íŠ¸ ì²˜ë¦¬
+
+# ë¼ì´ë¸ŒëŸ¬ë¦¬ ì„¤ì¹˜ ë°©ë²•
+* GLFW: [ì„¤ì¹˜ë°©ë²•](https://learnopengl.com/Getting-started/Creating-a-window), [ë‹¤ìš´ë¡œë“œ](https://www.glfw.org/download.html)
+* GLAD: [ì„¤ì¹˜ë°©ë²•](https://learnopengl.com/Getting-started/Creating-a-window), [ë‹¤ìš´ë¡œë“œ](https://glad.dav1d.de/)
