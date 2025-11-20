@@ -50,11 +50,5 @@
       <Filter>소스 파일\shaders</Filter>
     </None>
     <None Include="README.md" />
-    <None Include="outLine.vs">
-      <Filter>소스 파일\shaders</Filter>
-    </None>
-    <None Include="outLine.fs">
-      <Filter>소스 파일\shaders</Filter>
-    </None>
   </ItemGroup>
 </Project>
