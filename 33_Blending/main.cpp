@@ -11,6 +11,7 @@
 
 #include <iostream>
 #include <vector>
+#include <algorithm>
 
 void processInput(GLFWwindow* window);
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -72,6 +73,8 @@ int main() {
 	// ------------------------------
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	// build and compile our shader program
 	// ------------------------------------
@@ -143,12 +146,38 @@ int main() {
 		1.0f, -0.5f,  0.0f,  1.0f,  1.0f,
 		1.0f,  0.5f,  0.0f,  1.0f,  0.0f
 	};
-	std::vector<glm::vec3> grassPosition {
+	std::vector<glm::vec3> grassPositions {
 		glm::vec3(-1.5f, 0.0f, -0.48f),
 		glm::vec3(1.5f, 0.0f, 0.51f),
 		glm::vec3(0.0f, 0.0f, 0.7f),
 		glm::vec3(-0.3f, 0.0f, -2.3f),
 		glm::vec3(0.5f, 0.0f, -0.6f)
+	};
+	std::vector<glm::vec3> windowPositions{
+		glm::vec3(-2.5f, 0.0f, 0.0f),
+		glm::vec3(2.0f, 0.0f, 0.8f),
+		glm::vec3(0.0f, 0.0f, 1.0f),
+		glm::vec3(-0.8f, 0.0f, -3.0f)
+	};
+	// merge and sort transparents
+	enum class transparents {
+		grass,
+		window
+	};
+	std::vector<std::pair<transparents, glm::vec3>> transparentVector;
+	for (int i = 0; i < grassPositions.size(); i++) {
+		transparentVector.emplace_back(transparents::grass, grassPositions[i]);
+	}
+	for (int i = 0; i < windowPositions.size(); i++) {
+		transparentVector.emplace_back(transparents::window, windowPositions[i]);
+	}
+	// compare object
+	struct myCompare {
+		bool operator()(const std::pair<transparents, glm::vec3>& a, const std::pair<transparents, glm::vec3>& b) {
+			float da = glm::length(camera.Position - a.second);
+			float db = glm::length(camera.Position - b.second);
+			return da > db;
+		}
 	};
 
 	// VAOs, VBOs
@@ -185,6 +214,7 @@ int main() {
 	unsigned int planeTexture = loadTexture("../resources/textures/metal.png");
 	unsigned int cubeTexture = loadTexture("../resources/textures/marble.jpg");
 	unsigned int grassTexture = loadTexture("../resources/textures/grass.png");
+	unsigned int windowTexture = loadTexture("../resources/textures/window.png");
 	ourShader.use();
 	ourShader.setInt("texture1", 0);
 
@@ -232,14 +262,23 @@ int main() {
 		ourShader.setMat4("model", model);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 		glBindVertexArray(0);
-		// grass
+		// transparents
 		glBindVertexArray(VAOs[2]);
-		glBindTexture(GL_TEXTURE_2D, grassTexture);
-		for (int i = 0; i < grassPosition.size(); i++) {
+		std::sort(transparentVector.begin(), transparentVector.end(), myCompare());
+		for (auto iter = transparentVector.begin(); iter < transparentVector.end(); iter++) {
 			model = glm::mat4(1.0f);
-			model = glm::translate(model, grassPosition[i]);
-			ourShader.setMat4("model", model);
-			glDrawArrays(GL_TRIANGLES, 0, 6);
+			if (iter->first == transparents::grass) {
+				glBindTexture(GL_TEXTURE_2D, grassTexture);
+				model = glm::translate(model, iter->second);
+				ourShader.setMat4("model", model);
+				glDrawArrays(GL_TRIANGLES, 0, 6);
+			}
+			else if (iter->first == transparents::window) {
+				glBindTexture(GL_TEXTURE_2D, windowTexture);
+				model = glm::translate(model, iter->second);
+				ourShader.setMat4("model", model);
+				glDrawArrays(GL_TRIANGLES, 0, 6);
+			}
 		}
 		glBindVertexArray(0);
 
