@@ -5,7 +5,7 @@
 
 # 프로젝트 설정
 ### project setting
-* Configuration Properties -> VC++ Directories
+*Configuration Properties -> VC++ Directories
   * Include Directories : includes 폴더 경로 추가
   * Library Directories : lib 폴더 경로 추가
 * Configuration Properties -> Linker -> Input
