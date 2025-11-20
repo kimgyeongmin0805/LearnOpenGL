@@ -10,6 +10,7 @@
 #include "camera.h"
 
 #include <iostream>
+#include <vector>
 
 void processInput(GLFWwindow* window);
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -66,9 +67,6 @@ int main() {
 		std::cout << "Failed to initialize GLAD" << std::endl;
 		return -1;
 	}
-
-	// tell stb_image.h to flip loaded texture's on the y-axis (before loading model texture)
-	stbi_set_flip_vertically_on_load(true);
 
 	// configure global opengl state
 	// ------------------------------
@@ -145,11 +143,18 @@ int main() {
 		1.0f, -0.5f,  0.0f,  1.0f,  1.0f,
 		1.0f,  0.5f,  0.0f,  1.0f,  0.0f
 	};
+	std::vector<glm::vec3> grassPosition {
+		glm::vec3(-1.5f, 0.0f, -0.48f),
+		glm::vec3(1.5f, 0.0f, 0.51f),
+		glm::vec3(0.0f, 0.0f, 0.7f),
+		glm::vec3(-0.3f, 0.0f, -2.3f),
+		glm::vec3(0.5f, 0.0f, -0.6f)
+	};
 
 	// VAOs, VBOs
-	unsigned int VAOs[2], VBOs[2];
-	glGenVertexArrays(2, VAOs);
-	glGenBuffers(2, VBOs);
+	unsigned int VAOs[3], VBOs[3];
+	glGenVertexArrays(3, VAOs);
+	glGenBuffers(3, VBOs);
 	// plane
 	glBindVertexArray(VAOs[0]);
 	glBindBuffer(GL_ARRAY_BUFFER, VBOs[0]);
@@ -166,6 +171,15 @@ int main() {
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
 	glEnableVertexAttribArray(1);
+	// grass
+	glBindVertexArray(VAOs[2]);
+	glBindBuffer(GL_ARRAY_BUFFER, VBOs[2]);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(transparentVertices), &transparentVertices, GL_STATIC_DRAW);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+	glEnableVertexAttribArray(1);
+	glBindVertexArray(0);
 
 	// load textures
 	unsigned int planeTexture = loadTexture("../resources/textures/metal.png");
@@ -214,8 +228,19 @@ int main() {
 		// plane
 		glBindVertexArray(VAOs[0]);
 		glBindTexture(GL_TEXTURE_2D, planeTexture);
-		ourShader.setMat4("model", glm::mat4(1.0f));
+		model = glm::mat4(1.0f);
+		ourShader.setMat4("model", model);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
+		glBindVertexArray(0);
+		// grass
+		glBindVertexArray(VAOs[2]);
+		glBindTexture(GL_TEXTURE_2D, grassTexture);
+		for (int i = 0; i < grassPosition.size(); i++) {
+			model = glm::mat4(1.0f);
+			model = glm::translate(model, grassPosition[i]);
+			ourShader.setMat4("model", model);
+			glDrawArrays(GL_TRIANGLES, 0, 6);
+		}
 		glBindVertexArray(0);
 
 		// glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
@@ -318,8 +343,19 @@ unsigned int loadTexture(const char* path) {
 		glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
 		glGenerateMipmap(GL_TEXTURE_2D);
 
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		if (format == GL_RGB) {
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		}
+		else if (format == GL_RGBA) {
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		}
+		else {
+			std::cout << "ERROR::TEXTURE::Failed to load texture at path: " << path << std::endl;
+			glfwTerminate();
+			return -1;
+		}
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
