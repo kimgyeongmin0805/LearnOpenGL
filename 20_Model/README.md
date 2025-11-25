@@ -4,6 +4,9 @@
 
 <img width="800" height="459" alt="assimp" src="https://github.com/user-attachments/assets/ff71d057-a0dc-4a72-b35e-76c861df8cf9" />
 
+<br/>
+<br/>
+
 ### fragment shader에서 normal을 normalize 하는 이유
 vertex shader에서 normalize를 해도 rasterizer에서 보간할 때 그 값이 단위 벡터라고 보장할 수 없기 때문이다.
 
@@ -16,6 +19,9 @@ $c = 0.5 * a + 0.5 * b = (0.5, 0.5, 0.0)$
 $|c| != 1$
 
 따라서 fragment shader에서 normalize를 한다.
+
+<br/>
+<br/>
 
 ### swizzle mask
 나는 채널이 1개일 때 다음과 같이 사용했었다.
@@ -35,6 +41,9 @@ if (nrChannels == 1) {
     glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, swizzleMask);
 }
 ```
+
+<br/>
+<br/>
 
 ### TBN과 normalMap 사용 방법
 ``` GLSL
