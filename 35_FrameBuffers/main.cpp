@@ -149,13 +149,22 @@ int main() {
 	};
 	float quadVertices[] = { // vertex attributes for a quad that fills the entire screen in Normalized Device Coordinates.
 		// positions   // texCoords
+		// left screen
 		-1.0f,  1.0f,  0.0f, 1.0f,
 		-1.0f, -1.0f,  0.0f, 0.0f,
-		 1.0f, -1.0f,  1.0f, 0.0f,
+		 0.0f, -1.0f,  1.0f, 0.0f,
 
 		-1.0f,  1.0f,  0.0f, 1.0f,
-		 1.0f, -1.0f,  1.0f, 0.0f,
-		 1.0f,  1.0f,  1.0f, 1.0f
+		 0.0f, -1.0f,  1.0f, 0.0f,
+		 0.0f,  1.0f,  1.0f, 1.0f,
+		// right screen
+		 0.0f,	1.0f,  0.0f, 1.0f,
+		 0.0f, -1.0f,  0.0f, 0.0f,
+		 1.0f, -1.0f, -1.0f, 0.0f,
+
+		 0.0f,  1.0f,  0.0f, 1.0f,
+		 1.0f, -1.0f, -1.0f, 0.0f,
+		 1.0f,  1.0f, -1.0f, 1.0f
 	};
 	std::vector<glm::vec3> grassPositions {
 		glm::vec3(-1.5f, 0.0f, -0.48f),
@@ -339,7 +348,7 @@ int main() {
 		screenShader.use();
 		glBindVertexArray(screenVAO);
 		glBindTexture(GL_TEXTURE_2D, textureColorBuffer);
-		glDrawArrays(GL_TRIANGLES, 0, 6);
+		glDrawArrays(GL_TRIANGLES, 0, 12);
 		glBindVertexArray(0);
 
 
