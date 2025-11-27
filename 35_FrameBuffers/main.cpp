@@ -359,6 +359,10 @@ int main() {
 	}
 	glDeleteVertexArrays(3, objectVAOs);
 	glDeleteBuffers(3, objectVBOs);
+	glDeleteVertexArrays(1, &screenVAO);
+	glDeleteBuffers(1, &screenVBO);
+	glDeleteFramebuffers(1, &FBO);
+	glDeleteRenderbuffers(1, &RBO);
 	glDeleteTextures(1, &planeTexture);
 	glDeleteTextures(1, &cubeTexture);
 	glDeleteTextures(1, &grassTexture);
