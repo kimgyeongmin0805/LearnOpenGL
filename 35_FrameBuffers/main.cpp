@@ -170,26 +170,6 @@ int main() {
 		glm::vec3(0.0f, 0.0f, 1.0f),
 		glm::vec3(-0.8f, 0.0f, -3.0f)
 	};
-	// merge and sort transparents
-	enum class transparents {
-		grass,
-		window
-	};
-	std::vector<std::pair<transparents, glm::vec3>> transparentVector;
-	for (int i = 0; i < grassPositions.size(); i++) {
-		transparentVector.emplace_back(transparents::grass, grassPositions[i]);
-	}
-	for (int i = 0; i < windowPositions.size(); i++) {
-		transparentVector.emplace_back(transparents::window, windowPositions[i]);
-	}
-	// compare object
-	struct myCompare {
-		bool operator()(const std::pair<transparents, glm::vec3>& a, const std::pair<transparents, glm::vec3>& b) {
-			float da = glm::length(camera.Position - a.second);
-			float db = glm::length(camera.Position - b.second);
-			return da > db;
-		}
-	};
 
 	// object objectVAOs, objectVBOs
 	unsigned int objectVAOs[3], objectVBOs[3];
@@ -243,6 +223,23 @@ int main() {
 	objectShader.setInt("objectTexture", 0);
 	screenShader.use();
 	screenShader.setInt("screenTexture", 0);
+
+	// merge and sort transparents
+	std::vector<std::pair<unsigned int, glm::vec3>> transparentVector;
+	for (int i = 0; i < grassPositions.size(); i++) {
+		transparentVector.emplace_back(windowTexture, grassPositions[i]);
+	}
+	for (int i = 0; i < windowPositions.size(); i++) {
+		transparentVector.emplace_back(grassTexture, windowPositions[i]);
+	}
+	// compare object
+	struct myCompare {
+		bool operator()(const std::pair<unsigned int, glm::vec3>& a, const std::pair<unsigned int, glm::vec3>& b) {
+			float da = glm::length(camera.Position - a.second);
+			float db = glm::length(camera.Position - b.second);
+			return da > db;
+		}
+	};
 
 
 	// framebuffer configuration
@@ -323,18 +320,11 @@ int main() {
 		std::sort(transparentVector.begin(), transparentVector.end(), myCompare());
 		for (auto iter = transparentVector.begin(); iter < transparentVector.end(); iter++) {
 			model = glm::mat4(1.0f);
-			if (iter->first == transparents::grass) {
-				glBindTexture(GL_TEXTURE_2D, grassTexture);
-				model = glm::translate(model, iter->second);
-				objectShader.setMat4("model", model);
-				glDrawArrays(GL_TRIANGLES, 0, 6);
-			}
-			else if (iter->first == transparents::window) {
-				glBindTexture(GL_TEXTURE_2D, windowTexture);
-				model = glm::translate(model, iter->second);
-				objectShader.setMat4("model", model);
-				glDrawArrays(GL_TRIANGLES, 0, 6);
-			}
+			glBindTexture(GL_TEXTURE_2D, iter->first);
+			model = glm::translate(model, iter->second);
+			objectShader.setMat4("model", model);
+			glDrawArrays(GL_TRIANGLES, 0, 6);
+			
 		}
 		glBindVertexArray(0);
 
