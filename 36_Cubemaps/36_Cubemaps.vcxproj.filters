@@ -49,5 +49,11 @@
     <None Include="screen.fs">
       <Filter>소스 파일\shaders</Filter>
     </None>
+    <None Include="cube.vs">
+      <Filter>소스 파일\shaders</Filter>
+    </None>
+    <None Include="cube.fs">
+      <Filter>소스 파일\shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>
