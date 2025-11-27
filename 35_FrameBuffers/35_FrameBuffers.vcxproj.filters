@@ -37,12 +37,18 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="shader.vs">
+    <None Include="object.vs">
       <Filter>소스 파일\shaders</Filter>
     </None>
-    <None Include="shader.fs">
+    <None Include="object.fs">
       <Filter>소스 파일\shaders</Filter>
     </None>
     <None Include="README.md" />
+    <None Include="screen.vs">
+      <Filter>소스 파일\shaders</Filter>
+    </None>
+    <None Include="screen.fs">
+      <Filter>소스 파일\shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

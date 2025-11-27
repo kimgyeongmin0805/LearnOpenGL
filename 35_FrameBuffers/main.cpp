@@ -78,7 +78,8 @@ int main() {
 
 	// build and compile our shader program
 	// ------------------------------------
-	Shader ourShader("shader.vs", "shader.fs");
+	Shader objectShader("object.vs", "object.fs");
+	Shader screenShader("screen.vs", "screen.fs");
 
 	// set up vertex data(and buffer(s)) and configure vertex attributes
 	// ------------------------------------------------------------------
@@ -146,6 +147,16 @@ int main() {
 		1.0f, -0.5f,  0.0f,  1.0f,  1.0f,
 		1.0f,  0.5f,  0.0f,  1.0f,  0.0f
 	};
+	float quadVertices[] = { // vertex attributes for a quad that fills the entire screen in Normalized Device Coordinates.
+		// positions   // texCoords
+		-1.0f,  1.0f,  0.0f, 1.0f,
+		-1.0f, -1.0f,  0.0f, 0.0f,
+		 1.0f, -1.0f,  1.0f, 0.0f,
+
+		-1.0f,  1.0f,  0.0f, 1.0f,
+		 1.0f, -1.0f,  1.0f, 0.0f,
+		 1.0f,  1.0f,  1.0f, 1.0f
+	};
 	std::vector<glm::vec3> grassPositions {
 		glm::vec3(-1.5f, 0.0f, -0.48f),
 		glm::vec3(1.5f, 0.0f, 0.51f),
@@ -180,43 +191,84 @@ int main() {
 		}
 	};
 
-	// VAOs, VBOs
-	unsigned int VAOs[3], VBOs[3];
-	glGenVertexArrays(3, VAOs);
-	glGenBuffers(3, VBOs);
+	// object objectVAOs, objectVBOs
+	unsigned int objectVAOs[3], objectVBOs[3];
+	glGenVertexArrays(3, objectVAOs);
+	glGenBuffers(3, objectVBOs);
 	// plane
-	glBindVertexArray(VAOs[0]);
-	glBindBuffer(GL_ARRAY_BUFFER, VBOs[0]);
+	glBindVertexArray(objectVAOs[0]);
+	glBindBuffer(GL_ARRAY_BUFFER, objectVBOs[0]);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(planeVertices), &planeVertices, GL_STATIC_DRAW);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
 	glEnableVertexAttribArray(1);
 	// cube
-	glBindVertexArray(VAOs[1]);
-	glBindBuffer(GL_ARRAY_BUFFER, VBOs[1]);
+	glBindVertexArray(objectVAOs[1]);
+	glBindBuffer(GL_ARRAY_BUFFER, objectVBOs[1]);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(cubeVertices), &cubeVertices, GL_STATIC_DRAW);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
 	glEnableVertexAttribArray(1);
 	// grass
-	glBindVertexArray(VAOs[2]);
-	glBindBuffer(GL_ARRAY_BUFFER, VBOs[2]);
+	glBindVertexArray(objectVAOs[2]);
+	glBindBuffer(GL_ARRAY_BUFFER, objectVBOs[2]);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(transparentVertices), &transparentVertices, GL_STATIC_DRAW);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
 	glEnableVertexAttribArray(1);
+	// screen VAO, VBO
+	unsigned int screenVAO, screenVBO;
+	glGenVertexArrays(1, &screenVAO);
+	glBindVertexArray(screenVAO);
+	glGenBuffers(1, &screenVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, screenVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+	glEnableVertexAttribArray(1);
+
 	glBindVertexArray(0);
+
 
 	// load textures
 	unsigned int planeTexture = loadTexture("../resources/textures/metal.png");
 	unsigned int cubeTexture = loadTexture("../resources/textures/marble.jpg");
 	unsigned int grassTexture = loadTexture("../resources/textures/grass.png");
 	unsigned int windowTexture = loadTexture("../resources/textures/window.png");
-	ourShader.use();
-	ourShader.setInt("texture1", 0);
+	objectShader.use();
+	objectShader.setInt("objectTexture", 0);
+	screenShader.use();
+	screenShader.setInt("screenTexture", 0);
+
+
+	// framebuffer configuration
+	unsigned int FBO;
+	glGenFramebuffers(1, &FBO);
+	glBindFramebuffer(GL_FRAMEBUFFER, FBO);
+	// create a color attachment texture
+	unsigned int textureColorBuffer;
+	glGenTextures(1, &textureColorBuffer);
+	glBindTexture(GL_TEXTURE_2D, textureColorBuffer);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColorBuffer, 0);
+	// create a renderbuffer object for depth and stencil attachment
+	unsigned int RBO;
+	glGenRenderbuffers(1, &RBO);
+	glBindRenderbuffer(GL_RENDERBUFFER, RBO);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, SCR_WIDTH, SCR_HEIGHT);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, RBO);
+	// complete check
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+		std::cout << "ERROR::FRAMEBUFFER::Framebuffer is not complete!" << std::endl;
+	}
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
 
 	// render loop
 	// -----------
@@ -230,66 +282,87 @@ int main() {
 		// input
 		processInput(window);
 
-		// render
+		// first render
+		glBindFramebuffer(GL_FRAMEBUFFER, FBO);
+		glEnable(GL_DEPTH_TEST);
+		glEnable(GL_BLEND);
+
 		glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		// projection & view
 		glm::mat4 projection = camera.GetProjectionMatrix();
 		glm::mat4 view = camera.GetViewMatrix();
-		ourShader.use();
-		ourShader.setMat4("projection", projection);
-		ourShader.setMat4("view", view);
+		objectShader.use();
+		objectShader.setMat4("projection", projection);
+		objectShader.setMat4("view", view);
 
 		// cube
-		ourShader.use();
-		glBindVertexArray(VAOs[1]);
+		objectShader.use();
+		glBindVertexArray(objectVAOs[1]);
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, cubeTexture);
 		glm::mat4 model = glm::mat4(1.0f);
 		model = glm::translate(model, glm::vec3(-1.0f, 0.0f, -1.0f));
-		ourShader.setMat4("model", model);
+		objectShader.setMat4("model", model);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 		model = glm::mat4(1.0f);
 		model = glm::translate(model, glm::vec3(2.0f, 0.0f, 0.0f));
-		ourShader.setMat4("model", model);
+		objectShader.setMat4("model", model);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 		glBindVertexArray(0);
 		// plane
-		glBindVertexArray(VAOs[0]);
+		glBindVertexArray(objectVAOs[0]);
 		glBindTexture(GL_TEXTURE_2D, planeTexture);
 		model = glm::mat4(1.0f);
-		ourShader.setMat4("model", model);
+		objectShader.setMat4("model", model);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 		glBindVertexArray(0);
 		// transparents
-		glBindVertexArray(VAOs[2]);
+		glBindVertexArray(objectVAOs[2]);
 		std::sort(transparentVector.begin(), transparentVector.end(), myCompare());
 		for (auto iter = transparentVector.begin(); iter < transparentVector.end(); iter++) {
 			model = glm::mat4(1.0f);
 			if (iter->first == transparents::grass) {
 				glBindTexture(GL_TEXTURE_2D, grassTexture);
 				model = glm::translate(model, iter->second);
-				ourShader.setMat4("model", model);
+				objectShader.setMat4("model", model);
 				glDrawArrays(GL_TRIANGLES, 0, 6);
 			}
 			else if (iter->first == transparents::window) {
 				glBindTexture(GL_TEXTURE_2D, windowTexture);
 				model = glm::translate(model, iter->second);
-				ourShader.setMat4("model", model);
+				objectShader.setMat4("model", model);
 				glDrawArrays(GL_TRIANGLES, 0, 6);
 			}
 		}
 		glBindVertexArray(0);
 
+		// second render
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glDisable(GL_DEPTH_TEST);
+		glDisable(GL_BLEND);
+
+		glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT);
+
+		screenShader.use();
+		glBindVertexArray(screenVAO);
+		glBindTexture(GL_TEXTURE_2D, textureColorBuffer);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+		glBindVertexArray(0);
+
+
 		// glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
-	glDeleteVertexArrays(2, VAOs);
-	glDeleteBuffers(2, VBOs);
+	glDeleteVertexArrays(3, objectVAOs);
+	glDeleteBuffers(3, objectVBOs);
 	glDeleteTextures(1, &planeTexture);
 	glDeleteTextures(1, &cubeTexture);
+	glDeleteTextures(1, &grassTexture);
+	glDeleteTextures(1, &windowTexture);
 
 	// glfw: terminate, clearing all previously allocated GLFW resources.
 	glfwTerminate();
@@ -382,19 +455,18 @@ unsigned int loadTexture(const char* path) {
 		glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
 		glGenerateMipmap(GL_TEXTURE_2D);
 
-		if (format == GL_RGB) {
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-		}
-		else if (format == GL_RGBA) {
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		if (nrChannels == 1) {
+			GLint swizzleMask[] = { GL_RED, GL_RED, GL_RED, GL_ALPHA };
+			glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, swizzleMask);
 		}
 		else {
-			std::cout << "ERROR::TEXTURE::Failed to load texture at path: " << path << std::endl;
-			glfwTerminate();
-			return -1;
+			GLint swizzleMask[] = { GL_RED, GL_GREEN, GL_BLUE, GL_ALPHA };
+			glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, swizzleMask);
 		}
+
+		GLint wrap_param = (format == GL_RGBA) ? GL_CLAMP_TO_EDGE : GL_REPEAT;
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrap_param);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrap_param);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
