@@ -145,7 +145,6 @@
     <None Include="object.vs">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </None>
-    <None Include="README.md" />
     <None Include="screen.fs" />
     <None Include="screen.vs" />
   </ItemGroup>
