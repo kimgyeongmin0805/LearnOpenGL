@@ -21,10 +21,10 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{D217C72C-EF05-469C-9314-C10FB34FEAD3}</ProjectGuid>
+    <ProjectGuid>{49DC5C0C-BC60-463F-8D83-788BF1FF9A88}</ProjectGuid>
     <RootNamespace>My01HelloOpenGL</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
-    <ProjectName>36_Cubemaps</ProjectName>
+    <ProjectName>36_3_Refraction</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
