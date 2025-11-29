@@ -358,21 +358,9 @@ int main() {
 
 		glActiveTexture(GL_TEXTURE0);
 
-		// cube
-		glDepthMask(GL_FALSE);
-		glm::mat4 view = glm:: mat4(glm::mat3(camera.GetViewMatrix()));
-		glm::mat4 projection = camera.GetProjectionMatrix();
-		cubeShader.use();
-		cubeShader.setMat4("view", view);
-		cubeShader.setMat4("projection", projection);
-		glBindTexture(GL_TEXTURE_CUBE_MAP, cubeTexture);
-		glBindVertexArray(cubeVAO);
-		glDrawArrays(GL_TRIANGLES, 0, 36);
-		glBindVertexArray(0);
-
 		// object
-		glDepthMask(GL_TRUE);
-		view = camera.GetViewMatrix();
+		glm::mat4 projection = camera.GetProjectionMatrix();
+		glm::mat4 view = camera.GetViewMatrix();
 		objectShader.use();
 		objectShader.setMat4("projection", projection);
 		objectShader.setMat4("view", view);
@@ -390,13 +378,28 @@ int main() {
 		// plane
 		glBindVertexArray(objectVAOs[0]);
 		glBindTexture(GL_TEXTURE_2D, planeTexture);
+		objectShader.use();
 		model = glm::mat4(1.0f);
 		objectShader.setMat4("model", model);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 		glBindVertexArray(0);
+		// cube
+		glDepthMask(GL_FALSE);
+		glDepthFunc(GL_LEQUAL);
+		view = glm::mat4(glm::mat3(camera.GetViewMatrix()));
+		cubeShader.use();
+		cubeShader.setMat4("view", view);
+		cubeShader.setMat4("projection", projection);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, cubeTexture);
+		glBindVertexArray(cubeVAO);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
+		glBindVertexArray(0);
+		glDepthMask(GL_TRUE);
+		glDepthFunc(GL_LESS);
 		// transparents
 		glBindVertexArray(objectVAOs[2]);
 		std::sort(transparentVector.begin(), transparentVector.end(), myCompare());
+		objectShader.use();
 		for (auto iter = transparentVector.begin(); iter < transparentVector.end(); iter++) {
 			model = glm::mat4(1.0f);
 			glBindTexture(GL_TEXTURE_2D, iter->first);
@@ -419,7 +422,6 @@ int main() {
 		glBindTexture(GL_TEXTURE_2D, textureColorBuffer);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 		glBindVertexArray(0);
-
 
 		// glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
 		glfwSwapBuffers(window);
