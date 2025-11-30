@@ -2,10 +2,16 @@
 
 out vec4 FragColor;
 
-in vec2 TexCoords;
+in vec3 FragPos;
+in vec3 Normal;
 
-uniform sampler2D objectTexture;
+uniform samplerCube texture_cube;
+uniform vec3 cameraPos;
 
 void main() {
-    FragColor = texture(objectTexture, TexCoords);
+    vec3 camera_direction = normalize(FragPos - cameraPos);
+    vec3 normal = normalize(Normal);
+    vec3 reflect_direction = reflect(camera_direction, normal);
+
+    FragColor = texture(texture_cube, reflect_direction);
 }
