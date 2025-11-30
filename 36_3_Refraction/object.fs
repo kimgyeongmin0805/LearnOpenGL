@@ -9,9 +9,10 @@ uniform vec3 cameraPos;
 uniform samplerCube texture_cube;
 
 void main() {
+    float ratio = 1.0 / 1.52;
     vec3 camera_direction = normalize(FragPos - cameraPos);
     vec3 normal = normalize(Normal);
-    vec3 reflect_direction = reflect(camera_direction, normal);
+    vec3 refract_direction = refract(camera_direction, normal, ratio);
 
-    FragColor = texture(texture_cube, reflect_direction);
+    FragColor = texture(texture_cube, refract_direction);
 }
