@@ -1,0 +1,506 @@
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
+#include <stb_image.h>
+
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
+#include "shader.h"
+#include "camera.h"
+
+#include <iostream>
+#include <vector>
+#include <algorithm>
+
+void processInput(GLFWwindow* window);
+void framebuffer_size_callback(GLFWwindow* window, int width, int height);
+void mouse_callback(GLFWwindow* window, double xpos, double ypos);
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
+unsigned int loadTexture(const char* path);
+unsigned int loadCubeTexture(const std::string&, const std::vector<std::string>&);
+
+// settings
+const unsigned int SCR_WIDTH = 800;
+const unsigned int SCR_HEIGHT = 600;
+
+// camera
+Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
+float lastX = SCR_WIDTH / 2.0f;
+float lastY = SCR_HEIGHT / 2.0f;
+bool firstMouse = true;
+
+// timing
+float deltaTime = 0.0f;
+float lastFrame = 0.0f;
+
+int main() {
+	// glfw: initialize and configure
+	// ------------------------------
+	glfwInit();
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+#ifdef __APPLE__
+	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // uncomment this statement to fix compilation on OS X
+#endif
+
+	// glfw window creation
+	// --------------------
+	GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", nullptr, nullptr);
+	if (window == nullptr) {
+		std::cout << "Failed to create GLFW window" << std::endl;
+		glfwTerminate();
+		return -1;
+	}
+
+	glfwMakeContextCurrent(window);
+	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+	glfwSetCursorPosCallback(window, mouse_callback);
+	glfwSetScrollCallback(window, scroll_callback);
+
+	// tell GLFW to capture our mouse
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
+	// glad: load all OpenGL function pointers
+	// ---------------------------------------
+	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
+		std::cout << "Failed to initialize GLAD" << std::endl;
+		return -1;
+	}
+
+	// configure global opengl state
+	// ------------------------------
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LESS);
+
+	// build and compile our shader program
+	// ------------------------------------
+	Shader objectShader("object.vs", "object.fs");
+	Shader screenShader("screen.vs", "screen.fs");
+	Shader cubeShader("cube.vs", "cube.fs");
+
+	// set up vertex data(and buffer(s)) and configure vertex attributes
+	// ------------------------------------------------------------------
+		// objectVertices를 position과 normal로 분리
+	float objectPositionVertices[] = {
+		// Front Face (Z=-0.5)
+		-0.5f, -0.5f, -0.5f,    0.5f, -0.5f, -0.5f,    0.5f,  0.5f, -0.5f,
+		 0.5f,  0.5f, -0.5f,   -0.5f,  0.5f, -0.5f,   -0.5f, -0.5f, -0.5f,
+
+		 // Back Face (Z=0.5)
+		-0.5f, -0.5f,  0.5f,    0.5f, -0.5f,  0.5f,    0.5f,  0.5f,  0.5f,
+		0.5f,  0.5f,  0.5f,   -0.5f,  0.5f,  0.5f,   -0.5f, -0.5f,  0.5f,
+
+		// Left Face (X=-0.5)
+		-0.5f,  0.5f,  0.5f,   -0.5f,  0.5f, -0.5f,   -0.5f, -0.5f, -0.5f,
+		-0.5f, -0.5f, -0.5f,   -0.5f, -0.5f,  0.5f,   -0.5f,  0.5f,  0.5f,
+
+		// Right Face (X=0.5)
+		0.5f,  0.5f,  0.5f,    0.5f,  0.5f, -0.5f,    0.5f, -0.5f, -0.5f,
+		0.5f, -0.5f, -0.5f,    0.5f, -0.5f,  0.5f,    0.5f,  0.5f,  0.5f,
+
+		// Bottom Face (Y=-0.5)
+		-0.5f, -0.5f, -0.5f,    0.5f, -0.5f, -0.5f,    0.5f, -0.5f,  0.5f,
+		0.5f, -0.5f,  0.5f,   -0.5f, -0.5f,  0.5f,   -0.5f, -0.5f, -0.5f,
+
+		// Top Face (Y=0.5)
+		-0.5f,  0.5f, -0.5f,    0.5f,  0.5f, -0.5f,    0.5f,  0.5f,  0.5f,
+		0.5f,  0.5f,  0.5f,   -0.5f,  0.5f,  0.5f,   -0.5f,  0.5f, -0.5f
+	};
+	float objectNormalVertices[] = {
+		// Front Face (Normal: 0.0f, 0.0f, -1.0f)
+		0.0f,  0.0f, -1.0f,   0.0f,  0.0f, -1.0f,   0.0f,  0.0f, -1.0f,
+		0.0f,  0.0f, -1.0f,   0.0f,  0.0f, -1.0f,   0.0f,  0.0f, -1.0f,
+
+		// Back Face (Normal: 0.0f, 0.0f, 1.0f)
+		0.0f,  0.0f,  1.0f,   0.0f,  0.0f,  1.0f,   0.0f,  0.0f,  1.0f,
+		0.0f,  0.0f,  1.0f,   0.0f,  0.0f,  1.0f,   0.0f,  0.0f,  1.0f,
+
+		// Left Face (Normal: -1.0f, 0.0f, 0.0f)
+		-1.0f,  0.0f,  0.0f,  -1.0f,  0.0f,  0.0f,  -1.0f,  0.0f,  0.0f,
+		-1.0f,  0.0f,  0.0f,  -1.0f,  0.0f,  0.0f,  -1.0f,  0.0f,  0.0f,
+
+		// Right Face (Normal: 1.0f, 0.0f, 0.0f)
+		1.0f,  0.0f,  0.0f,   1.0f,  0.0f,  0.0f,   1.0f,  0.0f,  0.0f,
+		1.0f,  0.0f,  0.0f,   1.0f,  0.0f,  0.0f,   1.0f,  0.0f,  0.0f,
+
+		// Bottom Face (Normal: 0.0f, -1.0f, 0.0f)
+		0.0f, -1.0f,  0.0f,   0.0f, -1.0f,  0.0f,   0.0f, -1.0f,  0.0f,
+		0.0f, -1.0f,  0.0f,   0.0f, -1.0f,  0.0f,   0.0f, -1.0f,  0.0f,
+
+		// Top Face (Normal: 0.0f, 1.0f, 0.0f)
+		0.0f,  1.0f,  0.0f,   0.0f,  1.0f,  0.0f,   0.0f,  1.0f,  0.0f,
+		0.0f,  1.0f,  0.0f,   0.0f,  1.0f,  0.0f,   0.0f,  1.0f,  0.0f
+	};
+	float quadVertices[] = { // vertex attributes for a quad that fills the entire screen in Normalized Device Coordinates.
+		// positions   // texCoords
+		-1.0f,  1.0f,  0.0f, 1.0f,
+		-1.0f, -1.0f,  0.0f, 0.0f,
+		 1.0f, -1.0f,  1.0f, 0.0f,
+
+		-1.0f,  1.0f,  0.0f, 1.0f,
+		 1.0f, -1.0f,  1.0f, 0.0f,
+		 1.0f,  1.0f,  1.0f, 1.0f,
+	};
+	float skyboxVertices[] = {
+		// positions          
+		-1.0f,  1.0f, -1.0f,
+		-1.0f, -1.0f, -1.0f,
+		 1.0f, -1.0f, -1.0f,
+		 1.0f, -1.0f, -1.0f,
+		 1.0f,  1.0f, -1.0f,
+		-1.0f,  1.0f, -1.0f,
+
+		-1.0f, -1.0f,  1.0f,
+		-1.0f, -1.0f, -1.0f,
+		-1.0f,  1.0f, -1.0f,
+		-1.0f,  1.0f, -1.0f,
+		-1.0f,  1.0f,  1.0f,
+		-1.0f, -1.0f,  1.0f,
+
+		 1.0f, -1.0f, -1.0f,
+		 1.0f, -1.0f,  1.0f,
+		 1.0f,  1.0f,  1.0f,
+		 1.0f,  1.0f,  1.0f,
+		 1.0f,  1.0f, -1.0f,
+		 1.0f, -1.0f, -1.0f,
+
+		-1.0f, -1.0f,  1.0f,
+		-1.0f,  1.0f,  1.0f,
+		 1.0f,  1.0f,  1.0f,
+		 1.0f,  1.0f,  1.0f,
+		 1.0f, -1.0f,  1.0f,
+		-1.0f, -1.0f,  1.0f,
+
+		-1.0f,  1.0f, -1.0f,
+		 1.0f,  1.0f, -1.0f,
+		 1.0f,  1.0f,  1.0f,
+		 1.0f,  1.0f,  1.0f,
+		-1.0f,  1.0f,  1.0f,
+		-1.0f,  1.0f, -1.0f,
+
+		-1.0f, -1.0f, -1.0f,
+		-1.0f, -1.0f,  1.0f,
+		 1.0f, -1.0f, -1.0f,
+		 1.0f, -1.0f, -1.0f,
+		-1.0f, -1.0f,  1.0f,
+		 1.0f, -1.0f,  1.0f
+	};
+
+	// object objectVAOs, objectVBOs
+	GLuint objectVAO = 0;
+	GLuint objectVBO = 0;
+	glGenVertexArrays(1, &objectVAO);
+	glGenBuffers(1, &objectVBO);
+	glBindVertexArray(objectVAO);
+		// 데이터 크기 계산
+	GLsizeiptr size_pos = sizeof(objectPositionVertices);
+	GLsizeiptr size_norm = sizeof(objectNormalVertices);
+	GLsizeiptr total_size = size_pos + size_norm;
+		// nullptr, GL_STATIC_COPY or GL_DYNAMIC_DRAW
+	glBindBuffer(GL_COPY_READ_BUFFER, objectVBO);
+	glBufferData(GL_COPY_READ_BUFFER, total_size, nullptr, GL_STATIC_COPY);
+		// glBufferSubData (Batch 형식)
+	glBufferSubData(GL_COPY_READ_BUFFER, 0, size_pos, &objectPositionVertices);
+	glBufferSubData(GL_COPY_READ_BUFFER, size_pos, size_norm, &objectNormalVertices);
+		// glCopyBufferSubData
+	unsigned int objectVBOCPY;
+	glGenBuffers(1, &objectVBOCPY);
+	glBindBuffer(GL_COPY_WRITE_BUFFER, objectVBOCPY);
+	glBufferData(GL_COPY_WRITE_BUFFER, total_size, nullptr, GL_STATIC_DRAW);
+	glCopyBufferSubData(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, 0, 0, total_size);
+	glDeleteBuffers(1, &objectVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, objectVBOCPY);
+		// batch 형식에 맞춘 glVertexAttribPointer
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)(size_pos));
+	glEnableVertexAttribArray(1);
+	// screen VAO, VBO
+	unsigned int screenVAO, screenVBO;
+	glGenVertexArrays(1, &screenVAO);
+	glBindVertexArray(screenVAO);
+	glGenBuffers(1, &screenVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, screenVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+	glEnableVertexAttribArray(1);
+	// sky box
+	unsigned int cubeVAO, cubeVBO;
+	glGenVertexArrays(1, &cubeVAO);
+	glBindVertexArray(cubeVAO);
+	glGenBuffers(1, &cubeVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, cubeVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(skyboxVertices), &skyboxVertices, GL_STATIC_DRAW);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+
+	glBindVertexArray(0);
+
+
+	// load textures
+	objectShader.use();
+	objectShader.setInt("texture_cube", 0);
+	screenShader.use();
+	screenShader.setInt("screenTexture", 0);
+
+	std::vector<std::string> faces{
+		"right.jpg",
+		"left.jpg",
+		"top.jpg",
+		"bottom.jpg",
+		"front.jpg",
+		"back.jpg"
+	};
+	unsigned int cubeTexture = loadCubeTexture("../resources/textures/skybox/", faces);
+	cubeShader.use();
+	cubeShader.setInt("texture_cube", 0);
+
+
+	// framebuffer configuration
+	unsigned int FBO;
+	glGenFramebuffers(1, &FBO);
+	glBindFramebuffer(GL_FRAMEBUFFER, FBO);
+	// create a color attachment texture
+	unsigned int textureColorBuffer;
+	glGenTextures(1, &textureColorBuffer);
+	glBindTexture(GL_TEXTURE_2D, textureColorBuffer);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColorBuffer, 0);
+	// create a renderbuffer object for depth and stencil attachment
+	unsigned int RBO;
+	glGenTextures(1, &RBO);
+	glBindTexture(GL_TEXTURE_2D, RBO);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, SCR_WIDTH, SCR_HEIGHT, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, NULL);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, RBO, 0);
+	// complete check
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+		std::cout << "ERROR::FRAMEBUFFER::Framebuffer is not complete!" << std::endl;
+	}
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+
+	// render loop
+	// -----------
+	while (!glfwWindowShouldClose(window)) {
+
+		// per-frame time logic
+		float currentFrame = static_cast<float>(glfwGetTime());
+		deltaTime = currentFrame - lastFrame;
+		lastFrame = currentFrame;
+
+		// input
+		processInput(window);
+
+		// first render
+		glBindFramebuffer(GL_FRAMEBUFFER, FBO);
+		glEnable(GL_DEPTH_TEST);
+
+		glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		// object
+		glm::mat4 projection = camera.GetProjectionMatrix();
+		glm::mat4 view = camera.GetViewMatrix();
+		objectShader.use();
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, cubeTexture);
+		objectShader.setVec3("cameraPos", camera.Position);
+		objectShader.setMat4("projection", projection);
+		objectShader.setMat4("view", view);
+		glBindVertexArray(objectVAO);
+		glm::mat4 model = glm::mat4(1.0f);
+		objectShader.setMat4("model", model);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
+		glBindVertexArray(0);
+		// sky box
+		glDepthMask(GL_FALSE);
+		glDepthFunc(GL_LEQUAL);
+		view = glm::mat4(glm::mat3(camera.GetViewMatrix()));
+		cubeShader.use();
+		cubeShader.setMat4("view", view);
+		cubeShader.setMat4("projection", projection);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, cubeTexture);
+		glBindVertexArray(cubeVAO);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
+		glBindVertexArray(0);
+		glDepthMask(GL_TRUE);
+		glDepthFunc(GL_LESS);
+
+		// second render
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glDisable(GL_DEPTH_TEST);
+
+		glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT);
+
+		screenShader.use();
+		glBindVertexArray(screenVAO);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, textureColorBuffer);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+		glBindVertexArray(0);
+
+		// glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
+		glfwSwapBuffers(window);
+		glfwPollEvents();
+	}
+	glDeleteVertexArrays(1, &objectVAO);
+	glDeleteBuffers(1, &objectVBO);
+	glDeleteVertexArrays(1, &screenVAO);
+	glDeleteBuffers(1, &screenVBO);
+	glDeleteFramebuffers(1, &FBO);
+	glDeleteRenderbuffers(1, &RBO);
+	glDeleteTextures(1, &cubeTexture);
+
+
+	// glfw: terminate, clearing all previously allocated GLFW resources.
+	glfwTerminate();
+	return 0;
+}
+
+// process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
+// ---------------------------------------------------------------------------------------------------------
+void processInput(GLFWwindow* window) {
+	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
+		glfwSetWindowShouldClose(window, true);
+	}
+
+	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+		camera.ProcessKeyboard(Camera_Movement::FORWARD, deltaTime);
+	}
+	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
+		camera.ProcessKeyboard(Camera_Movement::BACKWARD, deltaTime);
+	}
+	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+		camera.ProcessKeyboard(Camera_Movement::RIGHT, deltaTime);
+	}
+	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+		camera.ProcessKeyboard(Camera_Movement::LEFT, deltaTime);
+	}
+	if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) {
+		camera.ProcessKeyboard(Camera_Movement::UP, deltaTime);
+	}
+	if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) {
+		camera.ProcessKeyboard(Camera_Movement::DOWN, deltaTime);
+	}
+}
+
+// glfw: whenever the window size changed (by OS or user resize) this callback function executes
+// ---------------------------------------------------------------------------------------------
+void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
+	// make sure the viewport matches the new window dimensions; note that width and
+	// height will be significantly larger than specified on retina displays.
+	glViewport(0, 0, width, height);
+}
+
+// glfw: whenever the mouse moves, this callback is called
+// -------------------------------------------------------
+void mouse_callback(GLFWwindow*, double xposIn, double yposIn) {
+	float xpos = static_cast<float>(xposIn);
+	float ypos = static_cast<float>(yposIn);
+
+	if (firstMouse) {
+		lastX = xpos;
+		lastY = ypos;
+		firstMouse = false;
+	}
+
+	float xoffset = xpos - lastX;
+	float yoffset = lastY - ypos;
+
+	lastX = xpos;
+	lastY = ypos;
+
+	camera.ProcessMouseMovement(xoffset, yoffset, true);
+}
+
+// glfw: whenver the mouse scroll wheel scrolls, this callback is called
+// ---------------------------------------------------------------------
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
+	camera.ProcessMouseScroll(static_cast<float>(yoffset));
+}
+
+// load a texture from file
+// -------------------------
+unsigned int loadTexture(const char* path) {
+	unsigned int textureID;
+	glGenTextures(1, &textureID);
+
+	int width, height, nrChannels;
+	unsigned char* data = stbi_load(path, &width, &height, &nrChannels, 0);
+	if (data) {
+		GLenum format;
+		if (nrChannels == 1) {
+			format = GL_RED;
+		}
+		else if (nrChannels == 3) {
+			format = GL_RGB;
+		}
+		else if (nrChannels == 4) {
+			format = GL_RGBA;
+		}
+
+		glBindTexture(GL_TEXTURE_2D, textureID);
+		glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+		glGenerateMipmap(GL_TEXTURE_2D);
+
+		if (nrChannels == 1) {
+			GLint swizzleMask[] = { GL_RED, GL_RED, GL_RED, GL_ALPHA };
+			glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, swizzleMask);
+		}
+		else {
+			GLint swizzleMask[] = { GL_RED, GL_GREEN, GL_BLUE, GL_ALPHA };
+			glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, swizzleMask);
+		}
+
+		GLint wrap_param = (format == GL_RGBA) ? GL_CLAMP_TO_EDGE : GL_REPEAT;
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrap_param);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrap_param);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+		stbi_image_free(data);
+	}
+	else {
+		std::cout << "ERROR::STB_IMAGE::FAILED TO LOAD IMAGE AT PATH: " << path << std::endl;
+		stbi_image_free(data);
+	}
+	return textureID;
+}
+
+unsigned int loadCubeTexture(const std::string& directory, const std::vector<std::string>& faces) {
+	unsigned int textureID;
+	glGenTextures(1, &textureID);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
+
+	int width, height, nrChannels;
+	for (int i = 0; i < faces.size(); i++) {
+		std::string path = directory + faces[i];
+		unsigned char* data = stbi_load(path.c_str(), &width, &height, &nrChannels, 0);
+		if (data) {
+			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+		}
+		else {
+			std::cout << "ERROR::CUBE_TEXTURE::Failed to load cube texture at path: " << path << std::endl;
+		}
+		stbi_image_free(data);
+	}
+	glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	
+	return textureID;
+}

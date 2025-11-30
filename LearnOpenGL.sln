@@ -61,6 +61,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "36_1_Cubemaps", "36_1_Cubem
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "36_2_EnvironmentMapping", "36_3_Refraction\36_3_Refraction.vcxproj", "{49DC5C0C-BC60-463F-8D83-788BF1FF9A88}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "37_AdvancedData", "37_AdvancedData\37_AdvancedData.vcxproj", "{4C16430D-5D9F-473B-8D44-8D1E686B2ECD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -237,6 +239,14 @@ Global
 		{49DC5C0C-BC60-463F-8D83-788BF1FF9A88}.Release|x64.Build.0 = Release|x64
 		{49DC5C0C-BC60-463F-8D83-788BF1FF9A88}.Release|x86.ActiveCfg = Release|Win32
 		{49DC5C0C-BC60-463F-8D83-788BF1FF9A88}.Release|x86.Build.0 = Release|Win32
+		{4C16430D-5D9F-473B-8D44-8D1E686B2ECD}.Debug|x64.ActiveCfg = Debug|x64
+		{4C16430D-5D9F-473B-8D44-8D1E686B2ECD}.Debug|x64.Build.0 = Debug|x64
+		{4C16430D-5D9F-473B-8D44-8D1E686B2ECD}.Debug|x86.ActiveCfg = Debug|Win32
+		{4C16430D-5D9F-473B-8D44-8D1E686B2ECD}.Debug|x86.Build.0 = Debug|Win32
+		{4C16430D-5D9F-473B-8D44-8D1E686B2ECD}.Release|x64.ActiveCfg = Release|x64
+		{4C16430D-5D9F-473B-8D44-8D1E686B2ECD}.Release|x64.Build.0 = Release|x64
+		{4C16430D-5D9F-473B-8D44-8D1E686B2ECD}.Release|x86.ActiveCfg = Release|Win32
+		{4C16430D-5D9F-473B-8D44-8D1E686B2ECD}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -263,6 +273,7 @@ Global
 		{AA008F30-DFA8-47A2-A7F0-86EB0B0EA469} = {9A962DBE-825F-4E86-B84D-0D7A76A2372D}
 		{D217C72C-EF05-469C-9314-C10FB34FEAD3} = {9A962DBE-825F-4E86-B84D-0D7A76A2372D}
 		{49DC5C0C-BC60-463F-8D83-788BF1FF9A88} = {9A962DBE-825F-4E86-B84D-0D7A76A2372D}
+		{4C16430D-5D9F-473B-8D44-8D1E686B2ECD} = {9A962DBE-825F-4E86-B84D-0D7A76A2372D}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {3CAAC00D-73EC-4140-9085-D1A02FF49C7F}
