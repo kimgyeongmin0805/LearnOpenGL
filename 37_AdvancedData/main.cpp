@@ -211,8 +211,8 @@ int main() {
 	glBindBuffer(GL_COPY_WRITE_BUFFER, objectVBOCPY);
 	glBufferData(GL_COPY_WRITE_BUFFER, total_size, nullptr, GL_STATIC_DRAW);
 	glCopyBufferSubData(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, 0, 0, total_size);
-	glDeleteBuffers(1, &objectVBO);
 	glBindBuffer(GL_ARRAY_BUFFER, objectVBOCPY);
+	glDeleteBuffers(1, &objectVBO);
 		// batch Çü½Ä¿¡ ¸ÂÃá glVertexAttribPointer
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
